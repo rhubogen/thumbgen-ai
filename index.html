@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ThumbGen – Local AI YouTube thumbnails</title>
+  <meta name="description" content="Make scroll-stopping YouTube thumbnails with AI that runs 100% on your own PC. Invite-only, free public beta for Windows.">
+  <meta property="og:title" content="ThumbGen – Local AI YouTube thumbnails">
+  <meta property="og:description" content="Generate, cut out, erase, rewrite and upscale. Runs offline on your PC. Free public beta.">
+  <meta property="og:image" content="assets/showcase-1.jpg">
+  <meta name="theme-color" content="#1c1d1f">
+  <link rel="icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <style>
+    :root {
+      --bg: #1c1d1f;
+      --panel: #252629;
+      --panel-2: #2a2b2f;
+      --line: #37393e;
+      --text: #dedfe2;
+      --muted: #94979e;
+      --accent: #3884f4;
+      --accent-dim: #26569f;
+      --ok: #4ac478;
+      --warn: #e8aa38;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    img { max-width: 100%; display: block; }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(28, 29, 31, .82);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav { display: flex; align-items: center; gap: 28px; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; }
+    .brand img { width: 30px; height: 30px; }
+    .nav-links { display: flex; gap: 22px; margin-left: auto; font-size: 14px; }
+    .nav-links a { color: var(--muted); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 12px 20px; border-radius: 10px;
+      font-weight: 600; font-size: 15px; text-decoration: none;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn i { font-size: 20px; }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 8px 28px rgba(56, 132, 244, .28); }
+    .btn-primary:hover { background: #4a91f7; }
+    .btn-ghost { background: var(--panel-2); border-color: var(--line); color: var(--text); }
+    .btn-ghost:hover { border-color: #52555c; }
+    .btn-sm { padding: 8px 14px; font-size: 14px; }
+
+    /* Hero */
+    .hero { padding: 72px 0 40px; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ""; position: absolute; inset: -40% -10% auto; height: 640px;
+      background: radial-gradient(closest-side, rgba(56, 132, 244, .18), transparent);
+      pointer-events: none;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 56px; align-items: center; position: relative; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border-radius: 999px;
+      background: rgba(56, 132, 244, .12); border: 1px solid rgba(56, 132, 244, .35);
+      color: #9cc3ff; font-size: 13px; font-weight: 600;
+    }
+    .pill i { font-size: 15px; }
+    h1 { font-size: clamp(38px, 5vw, 58px); line-height: 1.05; letter-spacing: -0.03em; margin: 18px 0 18px; font-weight: 800; }
+    h1 .accent { color: var(--accent); }
+    .lead { color: var(--muted); font-size: 18px; max-width: 520px; margin: 0 0 28px; }
+    .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .meta { margin-top: 16px; color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; }
+    .meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .hero-shot {
+      border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 0 0 6px rgba(255, 255, 255, .02);
+      transform: perspective(1400px) rotateY(-6deg) rotateX(2deg);
+      cursor: zoom-in;
+    }
+    .hero-shot img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+
+    /* Sections */
+    section { padding: 72px 0; }
+    section + section { border-top: 1px solid var(--line); }
+    .eyebrow { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+    h2 { font-size: clamp(28px, 3.4vw, 38px); letter-spacing: -0.02em; margin: 8px 0 12px; font-weight: 750; }
+    .sub { color: var(--muted); max-width: 620px; margin: 0 0 36px; }
+
+    /* Gallery */
+    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      overflow: hidden; transition: transform .15s ease, border-color .15s ease;
+    }
+    .gallery .card { cursor: zoom-in; }
+    .gallery .card:hover { transform: translateY(-3px); border-color: #4b4e55; }
+    .gallery img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+    .caption { display: flex; align-items: center; gap: 8px; padding: 12px 14px; font-size: 13px; color: var(--muted); }
+    .caption i { color: var(--accent); font-size: 16px; }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature { padding: 22px; }
+    .feature .icon {
+      width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center;
+      background: rgba(56, 132, 244, .12); color: var(--accent); font-size: 22px; margin-bottom: 14px;
+    }
+    .feature h3 { margin: 0 0 6px; font-size: 16px; font-weight: 650; }
+    .feature p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    /* Pro */
+    .pro {
+      display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; align-items: center;
+      padding: 36px; border-radius: 16px;
+      background: linear-gradient(135deg, rgba(56, 132, 244, .16), rgba(56, 132, 244, .03));
+      border: 1px solid rgba(56, 132, 244, .3);
+    }
+    .pro h2 { margin-top: 10px; }
+    .pro ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .pro li { display: flex; gap: 10px; align-items: flex-start; color: var(--text); font-size: 15px; }
+    .pro li i { color: var(--accent); font-size: 20px; flex: none; margin-top: 1px; }
+    .soon { background: var(--warn); color: #1c1d1f; }
+
+    /* Requirements */
+    .req { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .req table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .req td { padding: 12px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .req tr:last-child td { border-bottom: 0; }
+    .req td:first-child { color: var(--muted); width: 38%; }
+    .req h3 { margin: 0; padding: 16px 18px; font-size: 15px; border-bottom: 1px solid var(--line); display: flex; gap: 8px; align-items: center; }
+
+    /* Install + FAQ */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 44px; }
+    .step { padding: 22px; }
+    .step .num {
+      width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+      background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 12px;
+    }
+    .step h3 { margin: 0 0 6px; font-size: 16px; }
+    .step p { margin: 0; color: var(--muted); font-size: 14px; }
+    .faq { display: grid; gap: 10px; }
+    details { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 0 18px; }
+    summary {
+      cursor: pointer; list-style: none; padding: 16px 0; font-weight: 600;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary i { color: var(--muted); transition: transform .15s ease; }
+    details[open] summary i { transform: rotate(45deg); }
+    details p { margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+    code { background: #151618; border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 13px; }
+
+    /* Final CTA + footer */
+    .final { text-align: center; }
+    .final .cta { justify-content: center; }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 13px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 50; display: none; place-items: center;
+      background: rgba(10, 10, 12, .88); padding: 24px; cursor: zoom-out;
+    }
+    .lightbox.open { display: grid; }
+    .lightbox img { max-height: 90vh; border-radius: 10px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
+
+    @media (max-width: 900px) {
+      .hero-grid, .pro, .req { grid-template-columns: 1fr; }
+      .hero-shot { transform: none; }
+      .gallery, .features, .steps { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .nav .btn { margin-left: auto; }
+      .hero { padding-top: 40px; }
+    }
+    @media (min-width: 901px) and (max-width: 1080px) {
+      .features { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#"><img src="assets/logo.png" alt="">ThumbGen</a>
+      <nav class="nav-links">
+        <a href="#showcase">Showcase</a>
+        <a href="#features">Features</a>
+        <a href="#requirements">Requirements</a>
+        <a href="#install">Install &amp; FAQ</a>
+        <a href="https://github.com/rhubogen/thumbgen-ai" target="_blank" rel="noopener"><i class="ph ph-github-logo"></i> GitHub</a>
+      </nav>
+      <a class="btn btn-primary btn-sm js-download" href="https://github.com/rhubogen/thumbgen-ai/releases/latest/download/ThumbGen.exe"><i class="ph ph-download-simple"></i>Download</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="pill"><i class="ph-fill ph-lock-key"></i>Invite-only · Free public beta</span>
+          <h1>Viral YouTube thumbnails, made by <span class="accent">AI on your PC</span>.</h1>
+          <p class="lead">Generate scenes, cut out characters, erase and rewrite text, and polish everything in a Photoshop-style editor. 100% local: no account, no cloud, no per-image fees.</p>
+          <div class="cta">
+            <a class="btn btn-primary js-download" href="https://github.com/rhubogen/thumbgen-ai/releases/latest/download/ThumbGen.exe">
+              <i class="ph ph-windows-logo"></i><span>Download free beta for Windows</span>
+            </a>
+            <a class="btn btn-ghost" href="https://github.com/rhubogen/thumbgen-ai" target="_blank" rel="noopener"><i class="ph ph-github-logo"></i>View on GitHub</a>
+          </div>
+          <div class="meta">
+            <span><i class="ph ph-tag"></i><span class="js-version">Latest beta</span></span>
+            <span><i class="ph ph-file"></i><span class="js-size">Windows 10/11 · 64-bit</span></span>
+            <span class="js-downloads-wrap" hidden><i class="ph ph-download-simple"></i><span class="js-downloads"></span></span>
+          </div>
+        </div>
+        <div class="hero-shot" data-full="assets/showcase-1.jpg">
+          <img src="assets/showcase-1.jpg" alt="YouTube thumbnail made with ThumbGen: red gorilla in front of a stormy ocean map with the text not safe irl" width="1280" height="720">
+        </div>
+      </div>
+    </section>
+
+    <section id="showcase">
+      <div class="wrap">
+        <div class="eyebrow">Showcase</div>
+        <h2>Made with ThumbGen</h2>
+        <p class="sub">Real thumbnails made with ThumbGen. Click any one to see it full size.</p>
+        <div class="gallery">
+          <figure class="card" data-full="assets/showcase-1.jpg" style="margin:0">
+            <img src="assets/showcase-1.jpg" alt="Thumbnail: not safe irl" loading="lazy" width="1280" height="720">
+            <figcaption class="caption"><i class="ph-fill ph-sparkle"></i>Made with ThumbGen</figcaption>
+          </figure>
+          <figure class="card" data-full="assets/showcase-2.jpg" style="margin:0">
+            <img src="assets/showcase-2.jpg" alt="Thumbnail: pro tryout" loading="lazy" width="1280" height="720">
+            <figcaption class="caption"><i class="ph-fill ph-sparkle"></i>Made with ThumbGen</figcaption>
+          </figure>
+          <figure class="card" data-full="assets/showcase-3.jpg" style="margin:0">
+            <img src="assets/showcase-3.jpg" alt="Thumbnail: no cheaters" loading="lazy" width="1280" height="720">
+            <figcaption class="caption"><i class="ph-fill ph-sparkle"></i>Made with ThumbGen</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="wrap">
+        <div class="eyebrow">Features</div>
+        <h2>Everything a thumbnail needs, in one app</h2>
+        <p class="sub">Two modes: <strong>Create</strong> for fast AI generation, and <strong>Edit</strong>, a Photoshop-style editor with AI tools built in.</p>
+        <div class="features">
+          <div class="card feature"><div class="icon"><i class="ph ph-sparkle"></i></div><h3>AI backgrounds</h3><p>Describe a scene and get several variations in seconds, with style presets for gaming, reactions, tech, finance and more.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-images"></i></div><h3>Reference images</h3><p>Copy the composition, colour palette or layout of any thumbnail you like.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-scissors"></i></div><h3>Subject cut-out</h3><p>Click a person or character to cut it out, with the classic white outline, glow and shadow.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-stack"></i></div><h3>Photoshop-style editor</h3><p>Layers, masks, blend modes, brushes, selections, magic wand, transform, crop, curves and full history.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-magic-wand"></i></div><h3>Magic eraser</h3><p>Brush over text, logos or objects and they vanish. The background fills in naturally.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-text-aa"></i></div><h3>Edit text in any image</h3><p>Finds text baked into a picture, erases it and gives you an editable layer in the same style.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-selection-background"></i></div><h3>Background remover</h3><p>One click for photos or cartoon/game characters, then swap in a colour, a gradient, an image or an AI scene.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-user-circle"></i></div><h3>Character generator</h3><p>Describe a character in photo, 3D-cartoon, anime or blocky-avatar style. It arrives already cut out.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-palette"></i></div><h3>AI repaint</h3><p>Change expressions, outfits and objects with a prompt: shocked face, red hoodie, gold crown.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-arrows-out"></i></div><h3>4× AI upscale</h3><p>Sharpen small or blurry pictures before they go into your thumbnail.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-export"></i></div><h3>Export anything</h3><p>JPG kept under YouTube's 2 MB limit, PNG, WebP or layered PSD, in several sizes at once.</p></div>
+          <div class="card feature"><div class="icon"><i class="ph ph-shield-check"></i></div><h3>Private &amp; offline</h3><p>Everything runs on your computer. Your images never leave your PC.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="pro">
+          <div>
+            <span class="pill"><i class="ph-fill ph-crown-simple"></i>ThumbGen Pro</span>
+            <h2>Pro version coming soon</h2>
+            <p class="sub" style="margin-bottom:0">ThumbGen is invite-only while we grow. The beta is free for everyone right now, and beta users get early access to Pro when it launches.</p>
+          </div>
+          <ul>
+            <li><i class="ph ph-check-circle"></i>Free public beta: every feature on this page</li>
+            <li><i class="ph ph-check-circle"></i>Invites roll out to creators first</li>
+            <li><i class="ph ph-hourglass-medium"></i>Pro: coming soon</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="requirements">
+      <div class="wrap">
+        <div class="eyebrow">System requirements</div>
+        <h2>Runs on almost any modern PC</h2>
+        <p class="sub">No graphics card needed: the beta runs the AI on your processor. A faster CPU and more RAM just make it quicker.</p>
+        <div class="req">
+          <div class="card">
+            <h3><i class="ph ph-check-circle" style="color:var(--ok)"></i>Minimum</h3>
+            <table>
+              <tr><td>System</td><td>Windows 10 or 11, 64-bit</td></tr>
+              <tr><td>Processor</td><td>Any 64-bit CPU from the last ~8 years</td></tr>
+              <tr><td>Memory</td><td>8 GB RAM</td></tr>
+              <tr><td>Disk space</td><td>~3.5 GB (SD-Turbo model + AI editing tools)</td></tr>
+              <tr><td>Internet</td><td>Only for the first model download</td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <h3><i class="ph ph-rocket-launch" style="color:var(--accent)"></i>Recommended</h3>
+            <table>
+              <tr><td>Processor</td><td>6+ cores (about 30 s per image)</td></tr>
+              <tr><td>Memory</td><td>16 GB+ RAM (needed for SDXL-Turbo and quality repaint)</td></tr>
+              <tr><td>Disk space</td><td>~12 GB with every optional model</td></tr>
+              <tr><td>Screen</td><td>1920×1080 or larger</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <div class="eyebrow">Install</div>
+        <h2>Up and running in three steps</h2>
+        <p class="sub">ThumbGen is a single file: no installer, no account.</p>
+        <div class="steps">
+          <div class="card step"><div class="num">1</div><h3>Download</h3><p>Get <code>ThumbGen.exe</code> with the button above and run it.</p></div>
+          <div class="card step"><div class="num">2</div><h3>Allow it to run</h3><p>If Windows shows "Windows protected your PC", click <strong>More info → Run anyway</strong>. This beta isn't code-signed yet.</p></div>
+          <div class="card step"><div class="num">3</div><h3>Pick your models</h3><p>Choose the AI models on first launch. They download once, and after that ThumbGen works fully offline.</p></div>
+        </div>
+
+        <div class="eyebrow">FAQ</div>
+        <h2 style="margin-bottom:24px">Questions</h2>
+        <div class="faq">
+          <details><summary>Is ThumbGen really free?<i class="ph ph-plus"></i></summary><p>Yes. The public beta is free with every feature. ThumbGen is invite-only while it grows, and a Pro version is coming later. Beta users will get early access.</p></details>
+          <details><summary>Why does Windows warn me when I open it?<i class="ph ph-plus"></i></summary><p>New programs without a paid code-signing certificate trigger Microsoft SmartScreen. Click <strong>More info</strong>, then <strong>Run anyway</strong>. You only have to do this once.</p></details>
+          <details><summary>Do my images get uploaded anywhere?<i class="ph ph-plus"></i></summary><p>No. Every AI model runs on your own computer. The internet is only used to download the models the first time, and to fetch a YouTube thumbnail if you paste a link.</p></details>
+          <details><summary>Where are the AI models stored? How do I uninstall?<i class="ph ph-plus"></i></summary><p>Models and settings live in <code>%LOCALAPPDATA%\ThumbGen</code>. To uninstall, delete <code>ThumbGen.exe</code> and that folder. To keep everything next to the exe instead, put an empty <code>portable.txt</code> beside it.</p></details>
+          <details><summary>Does it need a graphics card?<i class="ph ph-plus"></i></summary><p>No. The beta runs on the CPU, so it works on almost any PC. GPU acceleration is planned.</p></details>
+          <details><summary>Can I use the thumbnails on a monetised channel?<i class="ph ph-plus"></i></summary><p>The images you make are yours, but the AI models have their own licences. SD-Turbo and SDXL-Turbo use Stability AI's community licence, which limits commercial use for larger businesses. Check it before using AI-generated backgrounds commercially.</p></details>
+          <details><summary>Mac or Linux?<i class="ph ph-plus"></i></summary><p>Windows only for now.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="final">
+      <div class="wrap">
+        <h2>Make your next thumbnail in minutes</h2>
+        <p class="sub" style="margin:0 auto 28px">Free public beta for Windows. No account needed.</p>
+        <div class="cta">
+          <a class="btn btn-primary js-download" href="https://github.com/rhubogen/thumbgen-ai/releases/latest/download/ThumbGen.exe"><i class="ph ph-download-simple"></i><span>Download free beta</span></a>
+          <a class="btn btn-ghost" href="https://github.com/rhubogen/thumbgen-ai/releases" target="_blank" rel="noopener"><i class="ph ph-list-bullets"></i>All releases</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© <span id="year"></span> ThumbGen · Invite-only beta</span>
+      <span>Not affiliated with YouTube or Google · <a href="https://github.com/rhubogen/thumbgen-ai" target="_blank" rel="noopener">GitHub</a></span>
+    </div>
+  </footer>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true"><img alt=""></div>
+
+  <script>
+    // Lightbox for the showcase images.
+    const box = document.getElementById("lightbox");
+    document.querySelectorAll("[data-full]").forEach(el => el.addEventListener("click", () => {
+      box.querySelector("img").src = el.dataset.full;
+      box.classList.add("open");
+    }));
+    box.addEventListener("click", () => box.classList.remove("open"));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") box.classList.remove("open"); });
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Point the download buttons at the newest release and show version, size and downloads.
+    // Buttons already link to /releases/latest/download/ThumbGen.exe, so this is just extra info.
+    fetch("https://api.github.com/repos/rhubogen/thumbgen-ai/releases?per_page=100")
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(releases => {
+        const published = releases.filter(r => !r.draft);
+        const total = published.flatMap(r => r.assets).reduce((n, a) => n + a.download_count, 0);
+        const latest = published.find(r => !r.prerelease) || published[0];
+        if (latest) {
+          const exe = latest.assets.find(a => a.name.toLowerCase().endsWith(".exe"));
+          if (exe) {
+            document.querySelectorAll(".js-download").forEach(a => a.href = exe.browser_download_url);
+            document.querySelector(".js-size").textContent = `Windows 10/11 · ${(exe.size / 1048576).toFixed(0)} MB`;
+          }
+          document.querySelector(".js-version").textContent = latest.name || latest.tag_name;
+        }
+        if (total > 0) {
+          document.querySelector(".js-downloads").textContent = `${total.toLocaleString()} downloads`;
+          document.querySelector(".js-downloads-wrap").hidden = false;
+        }
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
